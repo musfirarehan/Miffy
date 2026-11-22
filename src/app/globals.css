@@ -1,0 +1,461 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   Bunny AI design tokens
+   Pastel pink, warm cream, muted rose and a whisper of lavender.
+   `static` keeps every token available as a CSS variable (the avatar
+   SVG styles below read them directly).
+------------------------------------------------------------------- */
+@theme static {
+  --color-cream-50: #fffcf8;
+  --color-cream-100: #fff7ee;
+  --color-cream-200: #fbeedd;
+
+  --color-blush-50: #fff4f6;
+  --color-blush-100: #fde6ea;
+  --color-blush-200: #f9d1d9;
+  --color-blush-300: #f2b3c0;
+  --color-blush-400: #e791a5;
+
+  --color-mauve-300: #d9a3b1;
+  --color-mauve-500: #c5738a;
+  --color-mauve-600: #a95a71;
+  --color-mauve-700: #8a4559;
+
+  --color-lilac-100: #f1ecf9;
+  --color-lilac-200: #e3daf3;
+  --color-lilac-400: #b6a4dc;
+
+  --color-ink-900: #3a2e33;
+  --color-ink-700: #5c4c52;
+  --color-ink-500: #6f6066;
+  --color-ink-300: #9b8e93;
+}
+
+@theme inline {
+  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+}
+
+@theme {
+  --shadow-soft: 0 1px 2px rgb(58 46 51 / 0.04),
+    0 10px 28px -10px rgb(197 115 138 / 0.22);
+  --shadow-lift: 0 2px 4px rgb(58 46 51 / 0.05),
+    0 16px 36px -12px rgb(197 115 138 / 0.3);
+
+  --animate-fade-up: fade-up 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+/* ------------------------------------------------------------------
+   Base
+------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-cream-50);
+  color: var(--color-ink-900);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-blush-200);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-mauve-500);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------
+   Bunny avatar
+   Colors, outlines and every animation state live here so the
+   component stays purely structural.
+------------------------------------------------------------------- */
+.bunny-root {
+  overflow: visible;
+}
+
+/* Shared outline style: soft rounded strokes in warm charcoal. */
+.bunny-shape {
+  fill: #ffffff;
+  stroke: var(--color-ink-900);
+  stroke-width: 3;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.bunny-line {
+  fill: none;
+  stroke: var(--color-ink-900);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.bunny-line-thin {
+  fill: none;
+  stroke: var(--color-ink-900);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.bunny-ink {
+  fill: var(--color-ink-900);
+}
+.bunny-eye-shine {
+  fill: #ffffff;
+}
+.bunny-inner-ear {
+  fill: var(--color-blush-200);
+}
+.bunny-cheek {
+  fill: var(--color-blush-300);
+}
+.bunny-nose {
+  fill: var(--color-blush-400);
+}
+.bunny-mouth-fill {
+  fill: var(--color-mauve-600);
+  stroke: var(--color-ink-900);
+  stroke-width: 2.6;
+  stroke-linejoin: round;
+}
+.bunny-tongue {
+  fill: var(--color-blush-300);
+}
+.bunny-bow {
+  fill: var(--color-blush-300);
+  stroke: var(--color-mauve-600);
+  stroke-width: 2.2;
+  stroke-linejoin: round;
+}
+.bunny-shadow {
+  fill: var(--color-ink-900);
+  opacity: 0.07;
+}
+
+/* Transform boxes: origins below are in avatar (viewBox) coordinates. */
+.bunny-move,
+.bunny-head,
+.bunny-ear,
+.bunny-twitch,
+.bunny-blink,
+.bunny-talk {
+  transform-box: view-box;
+}
+.bunny-move {
+  transform-origin: 100px 247px;
+}
+.bunny-head {
+  transform-origin: 100px 182px;
+}
+.bunny-ear {
+  transition: transform 0.55s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+.bunny-ear-l,
+.bunny-ear-l .bunny-twitch {
+  transform-origin: 72px 104px;
+}
+.bunny-ear-r,
+.bunny-ear-r .bunny-twitch {
+  transform-origin: 128px 104px;
+}
+.bunny-twitch {
+  animation: bunny-twitch 7s ease-in-out infinite;
+}
+.bunny-blink {
+  transform-origin: 100px 142px;
+  animation: bunny-blink 5.5s ease-in-out infinite;
+}
+.bunny-talk {
+  transform-origin: 100px 158px;
+  animation: bunny-talk 0.3s ease-in-out infinite alternate;
+}
+
+/* Whole-body motion per expression */
+.bunny-move-idle {
+  animation: bunny-float 4.2s ease-in-out infinite;
+}
+.bunny-move-happy {
+  animation: bunny-bounce 1.6s ease-in-out infinite;
+}
+.bunny-move-excited {
+  animation: bunny-bounce-big 0.75s ease-in-out infinite;
+}
+.bunny-move-speaking {
+  animation: bunny-bob 0.5s ease-in-out infinite;
+}
+.bunny-move-sleepy {
+  animation: bunny-breathe 5s ease-in-out infinite;
+}
+
+/* Head motion per expression */
+.bunny-head-thinking {
+  animation: bunny-head-think 3.2s ease-in-out infinite;
+}
+.bunny-head-listening {
+  animation: bunny-head-listen 2.6s ease-in-out infinite;
+}
+.bunny-head-confused {
+  animation: bunny-head-confused 2.8s ease-in-out infinite;
+}
+.bunny-head-mischievous {
+  animation: bunny-head-sly 3s ease-in-out infinite;
+}
+.bunny-head-sleepy {
+  animation: bunny-head-sleepy 5s ease-in-out infinite;
+}
+.bunny-head-sad {
+  animation: bunny-head-sad 4s ease-in-out infinite;
+}
+
+/* Floating effects (thought dots, sparkles, z's, tears...) */
+.bunny-fx {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.bunny-fx-pulse {
+  animation: bunny-pulse 1.6s ease-in-out infinite;
+}
+.bunny-fx-twinkle {
+  animation: bunny-twinkle 1.5s ease-in-out infinite;
+}
+.bunny-fx-rise {
+  animation: bunny-rise 2.8s ease-in-out infinite;
+}
+.bunny-fx-drip {
+  animation: bunny-drip 2.6s ease-in infinite;
+}
+.bunny-fx-wobble {
+  animation: bunny-wobble 2.2s ease-in-out infinite;
+}
+
+/* Opt-out for places where the avatar must be still. */
+.bunny-static,
+.bunny-static * {
+  animation: none !important;
+}
+
+@keyframes bunny-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+@keyframes bunny-bounce {
+  0%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  35% {
+    transform: translateY(-7px) scale(0.99, 1.02);
+  }
+  70% {
+    transform: translateY(0) scale(1.02, 0.97);
+  }
+}
+@keyframes bunny-bounce-big {
+  0%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  40% {
+    transform: translateY(-13px) scale(0.98, 1.04);
+  }
+  75% {
+    transform: translateY(0) scale(1.04, 0.95);
+  }
+}
+@keyframes bunny-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+@keyframes bunny-breathe {
+  0%,
+  100% {
+    transform: translateY(1px) scale(1, 1);
+  }
+  50% {
+    transform: translateY(3px) scale(1.012, 0.99);
+  }
+}
+@keyframes bunny-head-think {
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(-8deg) translateY(-1px);
+  }
+}
+@keyframes bunny-head-listen {
+  0%,
+  100% {
+    transform: rotate(3deg);
+  }
+  50% {
+    transform: rotate(5.5deg);
+  }
+}
+@keyframes bunny-head-confused {
+  0%,
+  100% {
+    transform: rotate(8deg);
+  }
+  50% {
+    transform: rotate(11deg);
+  }
+}
+@keyframes bunny-head-sly {
+  0%,
+  100% {
+    transform: rotate(-7deg);
+  }
+  50% {
+    transform: rotate(-9.5deg);
+  }
+}
+@keyframes bunny-head-sleepy {
+  0%,
+  100% {
+    transform: rotate(3deg) translateY(3px);
+  }
+  50% {
+    transform: rotate(5deg) translateY(5px);
+  }
+}
+@keyframes bunny-head-sad {
+  0%,
+  100% {
+    transform: translateY(4px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(5px) rotate(-1.2deg);
+  }
+}
+@keyframes bunny-blink {
+  0%,
+  93%,
+  100% {
+    transform: scaleY(1);
+  }
+  96% {
+    transform: scaleY(0.08);
+  }
+}
+@keyframes bunny-twitch {
+  0%,
+  90%,
+  100% {
+    transform: rotate(0deg);
+  }
+  93% {
+    transform: rotate(-7deg);
+  }
+  96% {
+    transform: rotate(2deg);
+  }
+}
+@keyframes bunny-talk {
+  from {
+    transform: scaleY(0.45);
+  }
+  to {
+    transform: scaleY(1.15);
+  }
+}
+@keyframes bunny-pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes bunny-twinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.6) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.1) rotate(20deg);
+  }
+}
+@keyframes bunny-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  30%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+@keyframes bunny-drip {
+  0%,
+  20% {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  40% {
+    opacity: 1;
+  }
+  85%,
+  100% {
+    opacity: 0;
+    transform: translateY(9px);
+  }
+}
+@keyframes bunny-wobble {
+  0%,
+  100% {
+    transform: rotate(10deg);
+  }
+  50% {
+    transform: rotate(18deg);
+  }
+}
+
+/* Respect reduced-motion preferences everywhere. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

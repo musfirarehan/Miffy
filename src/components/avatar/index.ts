@@ -1,0 +1,1 @@
+export { BunnyAvatar } from "./BunnyAvatar";
