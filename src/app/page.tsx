@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ChatInput } from "@/components/chat/ChatInput";
+import { ChatStatusBar } from "@/components/chat/ChatStatusBar";
 import { MessageList } from "@/components/chat/MessageList";
 import { WelcomeScreen } from "@/components/chat/WelcomeScreen";
 import { AppHeader } from "@/components/layout/AppHeader";
@@ -12,7 +13,8 @@ import { useGreeting } from "@/hooks/useGreeting";
 import type { BunnyExpression } from "@/types/avatar";
 
 export default function Home() {
-  const { messages, sessionKey, send, reset } = useChatSession();
+  const { messages, status, error, sessionKey, send, retry, stop, reset } =
+    useChatSession();
   const greeting = useGreeting();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -43,11 +45,16 @@ export default function Home() {
   const openSidebar = useCallback(() => setSidebarOpen(true), []);
 
   const hasMessages = messages.length > 0;
-  const expression: BunnyExpression = justSent
-    ? "happy"
-    : inputFocused
-      ? "listening"
-      : "idle";
+  const streaming = status === "streaming";
+  const waitingForText =
+    streaming && messages[messages.length - 1]?.content === "";
+
+  let expression: BunnyExpression = "idle";
+  if (waitingForText) expression = "thinking";
+  else if (streaming) expression = "speaking";
+  else if (status === "error") expression = "confused";
+  else if (justSent) expression = "happy";
+  else if (inputFocused) expression = "listening";
 
   return (
     <div className="flex h-dvh overflow-hidden bg-cream-50 text-ink-900">
@@ -68,14 +75,13 @@ export default function Home() {
         <main className="flex-1 overflow-y-auto">
           {hasMessages ? (
             <>
-              <MessageList messages={messages} />
-              <p
-                role="status"
-                className="mx-auto max-w-3xl px-6 pb-6 text-center text-xs text-ink-300"
-              >
-                Bunny’s brain isn’t connected yet. Replies arrive in the next
-                development phase.
-              </p>
+              <MessageList messages={messages} streaming={streaming} />
+              <ChatStatusBar
+                streaming={streaming}
+                error={error}
+                onStop={stop}
+                onRetry={retry}
+              />
             </>
           ) : (
             <WelcomeScreen
@@ -93,6 +99,7 @@ export default function Home() {
               onSend={handleSend}
               onFocusChange={setInputFocused}
               seed={seed}
+              disabled={streaming}
             />
           </div>
         </div>

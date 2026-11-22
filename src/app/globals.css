@@ -85,6 +85,13 @@ body {
   outline-offset: 2px;
 }
 
+/* The message box signals focus on its pill container (border + shadow via
+   focus-within), so the textarea itself must not draw a second, square ring.
+   Unlayered rules beat Tailwind's `outline-none`, hence this override. */
+#chat-message:focus-visible {
+  outline: none;
+}
+
 /* ------------------------------------------------------------------
    Bunny avatar
    Colors, outlines and every animation state live here so the
