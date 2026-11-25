@@ -466,3 +466,8 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* The desktop companion draws on a transparent window. */
+html[data-companion] body {
+  background: transparent;
+}
