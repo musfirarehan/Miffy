@@ -81,6 +81,9 @@ const encodeEvent = (event: ChatStreamEvent): Uint8Array =>
  * streams the reply as NDJSON. `regenerate: true` re-answers the last user
  * message, replacing a failed or partial reply.
  */
+/** Streaming replies can run long; Vercel Hobby caps this at 60s. */
+export const maxDuration = 60;
+
 export const POST = apiHandler(async (request) => {
   const { supabase, user } = await requireUser();
 

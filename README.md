@@ -4,9 +4,15 @@ Bunny AI is a private personal AI companion: a witty, honest, slightly savage be
 
 ## Status
 
-- **Phases 1–2 (done):** foundation, original SVG bunny avatar with 10 expressions, responsive chat UI.
-- **Phase 3 (done):** provider-agnostic AI layer with a Gemini provider, configurable personality, validated and rate-limited streaming `POST /api/chat`, and a UI with streaming, Stop, error states and Retry.
-- **Next:** Phase 4 (Supabase persistence: conversations, long-term memory, settings). There is no database or voice yet; conversations live in memory and are lost on refresh.
+All planned features are implemented:
+
+- Original SVG bunny avatar with 10 expressions; responsive chat UI.
+- Provider-agnostic AI layer (Gemini), configurable personality (`BUNNY_SASS_LEVEL` / settings), validated and rate-limited streaming `POST /api/chat`.
+- Supabase auth (single private user), saved conversations with search/rename/delete, long-term memory (viewable, editable, deletable, can be turned off), user settings, all protected by Row Level Security.
+- Voice: push-to-talk speech input, spoken replies with play/pause/stop, voice/speed/pitch settings, mute, hands-free voice conversation mode.
+- Windows desktop companion (Tauri): floating transparent always-on-top bunny that expands to a mini chat, tray icon, notifications.
+
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** for setup (Supabase, env vars, Vercel, Windows installer). You only need to supply your own keys.
 
 ## Run locally
 
@@ -15,6 +21,7 @@ npm install
 npm run dev      # http://localhost:3000
 npm run build    # production build
 npm run lint
+npm test         # unit tests
 ```
 
 ## Configure the AI
@@ -24,7 +31,7 @@ npm run lint
 3. Set `AI_MODEL` to a current Gemini model ID from Google's model list.
 4. Restart `npm run dev`.
 
-Without these, the chat shows a clear "AI isn't set up yet" message instead of replying.
+Without these, the chat shows a clear "AI isn't set up yet" message instead of replying. Supabase variables are also required; see DEPLOYMENT.md.
 
 ## Where things live
 
@@ -32,3 +39,6 @@ Without these, the chat shows a clear "AI isn't set up yet" message instead of r
 - `src/features/assistant/`: personality (`personality.ts`), core rules, prompt and context builder, browser stream client.
 - `src/app/api/chat/route.ts`: the chat endpoint. Tune limits in `src/config/chat-api.ts`.
 - `BUNNY_SASS_LEVEL` (`gentle`, `balanced`, `savage`) changes how much Bunny teases.
+
+- `src/features/memories/`, `src/features/voice/`, `src/features/desktop/`: memory service, voice hooks, desktop bridge.
+- `supabase/migrations/`: database schema and RLS. `desktop/`: Tauri Windows shell. `tests/`: unit tests.
