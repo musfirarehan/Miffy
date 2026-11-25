@@ -1,4 +1,4 @@
-import { Menu, Settings, SquarePen } from "lucide-react";
+import { Menu, Settings, SquarePen, Volume2, VolumeX } from "lucide-react";
 
 import { BunnyAvatar } from "@/components/avatar";
 import { ASSISTANT_NAME } from "@/config/assistant";
@@ -9,6 +9,8 @@ interface AppHeaderProps {
   onOpenSidebar: () => void;
   onNewChat: () => void;
   onOpenSettings: () => void;
+  /** Present only when the browser can speak. */
+  voice?: { muted: boolean; onToggleMute: () => void };
 }
 
 function IconButton({
@@ -41,6 +43,7 @@ export function AppHeader({
   onOpenSidebar,
   onNewChat,
   onOpenSettings,
+  voice,
 }: AppHeaderProps) {
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 border-b border-blush-100 bg-cream-50/90 px-3 sm:px-5">
@@ -66,6 +69,18 @@ export function AppHeader({
         </div>
       </div>
 
+      {voice && (
+        <IconButton
+          label={voice.muted ? "Unmute Bunny’s voice" : "Mute Bunny’s voice"}
+          onClick={voice.onToggleMute}
+        >
+          {voice.muted ? (
+            <VolumeX className="size-5" aria-hidden="true" />
+          ) : (
+            <Volume2 className="size-5" aria-hidden="true" />
+          )}
+        </IconButton>
+      )}
       <IconButton label="New conversation" onClick={onNewChat}>
         <SquarePen className="size-5" aria-hidden="true" />
       </IconButton>

@@ -14,8 +14,8 @@ export type ChatStatus = "idle" | "streaming" | "error";
 export interface ChatSessionOptions {
   /** The conversation list should refresh (new conversation, new reply, new title). */
   onConversationsChanged?: () => void;
-  /** A reply finished streaming successfully. */
-  onReplyComplete?: (text: string) => void;
+  /** A reply finished streaming successfully (with the id of its message bubble). */
+  onReplyComplete?: (text: string, messageId: string) => void;
 }
 
 /** What a retry should do after a failure. */
@@ -107,7 +107,7 @@ export function useChatSession({
         setStatus("idle");
         attemptRef.current = null;
         const reply = messagesRef.current.find((m) => m.id === assistant.id)?.content ?? "";
-        callbacksRef.current.onReplyComplete?.(reply);
+        callbacksRef.current.onReplyComplete?.(reply, assistant.id);
         callbacksRef.current.onConversationsChanged?.();
         // The AI-written title is generated in the background; pick it up.
         window.clearTimeout(titleTimerRef.current);

@@ -13,12 +13,21 @@ import {
 import { COUNTER_THRESHOLD, MAX_MESSAGE_LENGTH } from "@/config/assistant";
 import { cn } from "@/lib/utilities/cn";
 
+export interface VoiceInputState {
+  state: "unsupported" | "idle" | "listening";
+  /** Words recognised so far in the current utterance. */
+  interim: string;
+  error: string | null;
+  onToggle: () => void;
+}
+
 interface ChatInputProps {
   onSend: (text: string) => void;
   onFocusChange?: (focused: boolean) => void;
-  /** Text to place into the box (e.g. a tapped starter prompt). */
-  seed?: { text: string; nonce: number } | null;
+  /** Text to place into the box (a tapped starter prompt, or a spoken transcript). */
+  seed?: { text: string; nonce: number; append?: boolean } | null;
   disabled?: boolean;
+  voice?: VoiceInputState;
 }
 
 const MAX_HEIGHT_PX = 160;
@@ -28,6 +37,7 @@ export function ChatInput({
   onFocusChange,
   seed,
   disabled = false,
+  voice,
 }: ChatInputProps) {
   const [draft, setDraft] = useState("");
   const [lastSeed, setLastSeed] = useState(seed?.nonce ?? 0);
@@ -37,7 +47,7 @@ export function ChatInput({
   // effect that sets state in response to a prop change).
   if (seed && seed.nonce !== lastSeed) {
     setLastSeed(seed.nonce);
-    setDraft(seed.text);
+    setDraft(seed.append && draft.trim() ? `${draft.trimEnd()} ${seed.text}` : seed.text);
   }
 
   // Grow the textarea with its content, up to a cap.
@@ -54,6 +64,7 @@ export function ChatInput({
   }, [seed?.nonce]);
 
   const canSend = draft.trim().length > 0 && !disabled;
+  const listening = voice?.state === "listening";
 
   function submit() {
     if (!canSend) return;
@@ -88,12 +99,31 @@ export function ChatInput({
       <div className="flex items-end gap-2 rounded-[1.75rem] border border-blush-200 bg-white p-2 shadow-soft transition focus-within:border-mauve-300 focus-within:shadow-lift">
         <button
           type="button"
-          disabled
-          title="Voice input is coming in a later phase"
-          aria-label="Voice input (coming soon)"
-          className="flex size-10 shrink-0 items-center justify-center rounded-full text-ink-300 disabled:cursor-not-allowed"
+          onClick={voice?.onToggle}
+          disabled={!voice || voice.state === "unsupported"}
+          aria-pressed={listening}
+          aria-label={listening ? "Stop listening" : "Speak to Bunny"}
+          title={
+            voice?.state === "unsupported"
+              ? "Voice input isn’t supported in this browser. Try Chrome or Edge."
+              : listening
+                ? "Stop listening"
+                : "Speak to Bunny"
+          }
+          className={cn(
+            "relative flex size-10 shrink-0 items-center justify-center rounded-full transition disabled:cursor-not-allowed",
+            listening
+              ? "bg-mauve-500 text-white"
+              : "text-ink-500 hover:bg-blush-100 hover:text-mauve-600 disabled:text-ink-300 disabled:hover:bg-transparent",
+          )}
         >
-          <Mic className="size-5" aria-hidden="true" />
+          {listening && (
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 animate-ping rounded-full bg-mauve-400/40 motion-reduce:hidden"
+            />
+          )}
+          <Mic className="relative size-5" aria-hidden="true" />
         </button>
 
         <label htmlFor="chat-message" className="sr-only">
@@ -105,7 +135,7 @@ export function ChatInput({
           value={draft}
           rows={1}
           maxLength={MAX_MESSAGE_LENGTH}
-          placeholder="Message Bunny…"
+          placeholder={listening ? "Listening…" : "Message Bunny…"}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           onFocus={() => onFocusChange?.(true)}
@@ -128,10 +158,20 @@ export function ChatInput({
         </button>
       </div>
 
-      <div className="mt-2 flex h-4 items-center justify-between px-3 text-xs text-ink-300">
-        <span className="hidden sm:inline">
-          Enter to send · Shift+Enter for a new line
-        </span>
+      <div className="mt-2 flex min-h-4 items-center justify-between gap-3 px-3 text-xs text-ink-300">
+        {listening ? (
+          <span role="status" className="min-w-0 truncate text-mauve-600">
+            Listening… {voice?.interim}
+          </span>
+        ) : voice?.error ? (
+          <span role="alert" className="min-w-0 text-mauve-700">
+            {voice.error}
+          </span>
+        ) : (
+          <span className="hidden sm:inline">
+            Enter to send · Shift+Enter for a new line
+          </span>
+        )}
         {showCounter && (
           <span
             className={cn(

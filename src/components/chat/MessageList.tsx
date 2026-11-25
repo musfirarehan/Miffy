@@ -4,16 +4,18 @@ import { useEffect, useRef } from "react";
 
 import type { ChatMessage } from "@/types/chat";
 
-import { MessageBubble } from "./MessageBubble";
+import { MessageBubble, type SpeechControls } from "./MessageBubble";
 import { TypingIndicator } from "./TypingIndicator";
 
 interface MessageListProps {
   messages: ChatMessage[];
   /** True while a reply is in flight; an empty assistant message shows as typing dots. */
   streaming?: boolean;
+  /** Text-to-speech controls; omitted when the browser can't speak. */
+  speech?: SpeechControls;
 }
 
-export function MessageList({ messages, streaming = false }: MessageListProps) {
+export function MessageList({ messages, streaming = false, speech }: MessageListProps) {
   const endRef = useRef<HTMLDivElement>(null);
   const last = messages[messages.length - 1];
   const lastLength = last?.content.length ?? 0;
@@ -34,7 +36,12 @@ export function MessageList({ messages, streaming = false }: MessageListProps) {
           streaming && message.role === "assistant" && message.content === "" ? (
             <TypingIndicator key={message.id} />
           ) : (
-            <MessageBubble key={message.id} message={message} />
+            <MessageBubble
+              key={message.id}
+              message={message}
+              // No listen button on a reply that is still being written.
+              speech={streaming && message === last ? undefined : speech}
+            />
           ),
         )}
       </ul>
