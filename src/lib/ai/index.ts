@@ -2,7 +2,7 @@ import "server-only";
 
 import { readAIConfig, type AIConfig } from "./config";
 import { createGeminiProvider } from "./providers/gemini";
-import { AIError, type AIProvider } from "./types";
+import { AIError, type AIChatRequest, type AIProvider } from "./types";
 
 export { AIError, httpStatusForAIError } from "./types";
 export type { AIChatRequest, AIMessage, AIProvider } from "./types";
@@ -20,4 +20,14 @@ export function getAIProvider(): AIProvider {
   const factory = PROVIDERS[config.provider];
   if (!factory) throw new AIError("not_configured");
   return factory(config);
+}
+
+/** Runs a request to completion and returns the full text (for short background tasks). */
+export async function completeText(
+  provider: AIProvider,
+  request: AIChatRequest,
+): Promise<string> {
+  let text = "";
+  for await (const delta of provider.streamChat(request)) text += delta;
+  return text;
 }

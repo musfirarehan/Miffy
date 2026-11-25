@@ -4,7 +4,9 @@
  * chat route or UI.
  */
 
-export type SassLevel = "gentle" | "balanced" | "savage";
+import type { SassLevel } from "@/types/settings";
+
+export type { SassLevel };
 
 export interface PersonalityExample {
   user: string;

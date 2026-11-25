@@ -10,6 +10,7 @@ export interface ChatMessage {
 
 /** Wire format of POST /api/chat: one JSON object per line (NDJSON). */
 export type ChatStreamEvent =
+  | { type: "meta"; conversationId: string; title: string; isNew: boolean }
   | { type: "delta"; text: string }
   | { type: "done" }
   | { type: "error"; code: string; message: string };

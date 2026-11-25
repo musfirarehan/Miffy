@@ -14,8 +14,10 @@ import { SYSTEM_INSTRUCTIONS } from "./system-instructions";
 export interface ChatContextInput {
   /** Full conversation as sent by the client; the last turn is the user's new message. */
   messages: AIMessage[];
-  /** Relevant long-term memories (Phase 4). Omitted from the prompt when empty. */
+  /** Relevant long-term memories. Omitted from the prompt when empty. */
   memories?: readonly string[];
+  /** How the user likes to be addressed (from settings). */
+  addressName?: string | null;
   personality?: PersonalityConfig;
 }
 
@@ -38,6 +40,11 @@ function buildMemoryBlock(memories: readonly string[]): string {
     ...items.map((item) => `- ${item}`),
     "</memories>",
   ].join("\n");
+}
+
+function buildAddressLine(name: string | null | undefined): string {
+  const clean = name?.replace(/[<>\n\r]/g, " ").trim().slice(0, 60);
+  return clean ? `The user likes to be called ${clean}.` : "";
 }
 
 /**
@@ -74,6 +81,7 @@ export function buildChatContext(input: ChatContextInput): ChatContext {
   const sections = [
     SYSTEM_INSTRUCTIONS,
     buildPersonalityPrompt(personality),
+    buildAddressLine(input.addressName),
     buildMemoryBlock(input.memories ?? []),
   ].filter(Boolean);
 

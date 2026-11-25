@@ -1,24 +1,45 @@
 "use client";
 
-import { Brain, MessageCircle, Plus, Search, Settings, X } from "lucide-react";
+import { Brain, Plus, Search, Settings, X } from "lucide-react";
 import { useEffect } from "react";
 
 import { BunnyAvatar } from "@/components/avatar";
 import { APP_NAME } from "@/config/assistant";
 import { cn } from "@/lib/utilities/cn";
+import type { ConversationSummary } from "@/types/conversation";
+
+import { ConversationList } from "./ConversationList";
 
 interface SidebarProps {
   open: boolean;
   onClose: () => void;
   onNewChat: () => void;
-  hasActiveChat: boolean;
+  onOpenMemories: () => void;
+  onOpenSettings: () => void;
+  conversations: {
+    items: ConversationSummary[] | null;
+    error: string | null;
+    query: string;
+    onSearch: (query: string) => void;
+    activeId: string | null;
+    onOpen: (id: string) => void;
+    onRename: (id: string, title: string) => Promise<void>;
+    onDelete: (id: string) => Promise<void>;
+  };
 }
+
+type ContentProps = Omit<SidebarProps, "open">;
 
 function SidebarContent({
   onClose,
   onNewChat,
-  hasActiveChat,
-}: Omit<SidebarProps, "open">) {
+  onOpenMemories,
+  onOpenSettings,
+  conversations: c,
+}: ContentProps) {
+  const footerButton =
+    "flex h-10 w-full items-center gap-3 rounded-xl px-3 text-sm text-ink-700 transition hover:bg-blush-100";
+
   return (
     <div className="flex h-full flex-col bg-cream-100">
       <div className="flex h-16 shrink-0 items-center justify-between px-4">
@@ -28,9 +49,7 @@ function SidebarContent({
               <BunnyAvatar size={28} animated={false} />
             </div>
           </div>
-          <span className="font-display text-lg font-medium text-ink-900">
-            {APP_NAME}
-          </span>
+          <span className="font-display text-lg font-medium text-ink-900">{APP_NAME}</span>
         </div>
         <button
           type="button"
@@ -55,53 +74,47 @@ function SidebarContent({
           New conversation
         </button>
 
-        <div
-          className="flex h-10 items-center gap-2 rounded-2xl border border-blush-200 bg-white/70 px-3 text-sm text-ink-300"
-          title="Conversation search arrives with persistence"
-        >
-          <Search className="size-4" aria-hidden="true" />
-          <span>Search (coming soon)</span>
-        </div>
+        <label className="flex h-10 items-center gap-2 rounded-2xl border border-blush-200 bg-white/70 px-3 text-sm focus-within:border-mauve-300">
+          <Search className="size-4 shrink-0 text-ink-300" aria-hidden="true" />
+          <span className="sr-only">Search conversations</span>
+          <input
+            type="search"
+            value={c.query}
+            onChange={(event) => c.onSearch(event.target.value)}
+            placeholder="Search conversations"
+            maxLength={100}
+            className="min-w-0 flex-1 bg-transparent text-ink-900 outline-none placeholder:text-ink-300"
+          />
+        </label>
       </div>
 
-      <nav
-        aria-label="Conversations"
-        className="mt-5 flex-1 overflow-y-auto px-3"
-      >
+      <nav aria-label="Conversations" className="mt-5 flex-1 overflow-y-auto px-3 pb-3">
         <p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wider text-ink-300">
-          Recent
+          {c.query.trim() ? "Results" : "Recent"}
         </p>
-        {hasActiveChat ? (
-          <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-2.5 text-sm text-ink-900 shadow-soft">
-            <MessageCircle
-              className="size-4 shrink-0 text-mauve-500"
-              aria-hidden="true"
-            />
-            <span className="truncate">Current conversation</span>
-          </div>
-        ) : (
-          <p className="px-2 text-sm leading-relaxed text-ink-500">
-            Your conversations will show up here once history is saved.
-          </p>
-        )}
+        <ConversationList
+          items={c.items}
+          error={c.error}
+          searching={c.query.trim().length > 0}
+          activeId={c.activeId}
+          onOpen={(id) => {
+            c.onOpen(id);
+            onClose();
+          }}
+          onRename={c.onRename}
+          onDelete={c.onDelete}
+        />
       </nav>
 
       <div className="space-y-1 border-t border-blush-100 p-3">
-        {[
-          { label: "Memories", icon: Brain },
-          { label: "Settings", icon: Settings },
-        ].map(({ label, icon: Icon }) => (
-          <button
-            key={label}
-            type="button"
-            disabled
-            title={`${label} (coming soon)`}
-            className="flex h-10 w-full cursor-not-allowed items-center gap-3 rounded-xl px-3 text-sm text-ink-500 opacity-60"
-          >
-            <Icon className="size-4" aria-hidden="true" />
-            {label}
-          </button>
-        ))}
+        <button type="button" onClick={onOpenMemories} className={footerButton}>
+          <Brain className="size-4" aria-hidden="true" />
+          Memories
+        </button>
+        <button type="button" onClick={onOpenSettings} className={footerButton}>
+          <Settings className="size-4" aria-hidden="true" />
+          Settings
+        </button>
       </div>
     </div>
   );
@@ -111,7 +124,7 @@ function SidebarContent({
  * Desktop: fixed column. Mobile: slide-over drawer with a backdrop,
  * Escape-to-close, and `inert` while hidden so it is not focusable.
  */
-export function Sidebar({ open, onClose, onNewChat, hasActiveChat }: SidebarProps) {
+export function Sidebar({ open, onClose, ...rest }: SidebarProps) {
   useEffect(() => {
     if (!open) return;
     const onKey = (event: KeyboardEvent) => {
@@ -124,11 +137,7 @@ export function Sidebar({ open, onClose, onNewChat, hasActiveChat }: SidebarProp
   return (
     <>
       <aside className="hidden w-72 shrink-0 border-r border-blush-100 lg:block">
-        <SidebarContent
-          onClose={onClose}
-          onNewChat={onNewChat}
-          hasActiveChat={hasActiveChat}
-        />
+        <SidebarContent onClose={onClose} {...rest} />
       </aside>
 
       <div
@@ -153,11 +162,7 @@ export function Sidebar({ open, onClose, onNewChat, hasActiveChat }: SidebarProp
             open ? "translate-x-0" : "-translate-x-full",
           )}
         >
-          <SidebarContent
-            onClose={onClose}
-            onNewChat={onNewChat}
-            hasActiveChat={hasActiveChat}
-          />
+          <SidebarContent onClose={onClose} {...rest} />
         </aside>
       </div>
     </>

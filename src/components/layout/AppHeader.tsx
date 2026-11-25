@@ -8,6 +8,7 @@ interface AppHeaderProps {
   expression: BunnyExpression;
   onOpenSidebar: () => void;
   onNewChat: () => void;
+  onOpenSettings: () => void;
 }
 
 function IconButton({
@@ -39,6 +40,7 @@ export function AppHeader({
   expression,
   onOpenSidebar,
   onNewChat,
+  onOpenSettings,
 }: AppHeaderProps) {
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 border-b border-blush-100 bg-cream-50/90 px-3 sm:px-5">
@@ -67,7 +69,7 @@ export function AppHeader({
       <IconButton label="New conversation" onClick={onNewChat}>
         <SquarePen className="size-5" aria-hidden="true" />
       </IconButton>
-      <IconButton label="Settings" disabled>
+      <IconButton label="Settings" onClick={onOpenSettings}>
         <Settings className="size-5" aria-hidden="true" />
       </IconButton>
     </header>
